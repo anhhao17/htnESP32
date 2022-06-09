@@ -11,7 +11,6 @@
 #include "addons/TokenHelper.h"
 //Provide the RTDB payload printing info and other helper functions.
 #include "addons/RTDBHelper.h"
-
 #define API_KEY "AIzaSyC4eikPsI3VGlvDF8K6yLu3y4xrNV6pHNA"
 
 // Insert RTDB URLefine the RTDB URL */
@@ -22,7 +21,7 @@
 
 //number of pin 
 int LED[9]={-1};
-
+enum PIN {D0=16, D1=5, D2=4,D3=0, D4=2, D5=14, D6=13, D7=12, D8=15};
 //Define Firebase Data object
 FirebaseData fbdo;
 FirebaseData stream;
@@ -43,7 +42,6 @@ unsigned long prevTime2 = millis();
 void putTemp();
 void getPin() ;
 int tempPin;
-
 void setup() {
   randomSeed(42); 
   Serial.begin(115200);
@@ -82,6 +80,10 @@ void setup() {
     Serial.printf("sream begin error, %s\n\n", stream.errorReason().c_str());
   Firebase.RTDB.setStreamCallback(&stream, streamCallback, streamTimeoutCallback);
 
+  //setpin
+ 
+  
+  
   //Update Pin 
   getPin();
   
@@ -138,31 +140,31 @@ void getPin() {
       }
       //assigning pin according to ESP32 pinout
       if(espPin.equals("D0")){
-        LED[i]=16;
+        LED[i]=D0;
       }
       if(espPin.equals("D1")){
-        LED[i]=5;
+        LED[i]=D1;
       }
       if(espPin.equals("D2")){
-        LED[i]=4;
+        LED[i]=D2;
       }
       if(espPin.equals("D3")){
-        LED[i]=0;
+        LED[i]=D3;
       }
       if(espPin.equals("D4")){
-        LED[i]=2;
+        LED[i]=D4;
       }
       if(espPin.equals("D5")){
-        LED[i]=14;
+        LED[i]=D5;
       }
       if(espPin.equals("D6")){
-        LED[i]=12;
+        LED[i]=D6;
       }
       if(espPin.equals("D7")){
-        LED[i]=13;
+        LED[i]=D7;
       }
       if(espPin.equals("D8")){
-        LED[i]=15;
+        LED[i]=D8;
       }
       
     }
