@@ -5,9 +5,9 @@
 #include <FirebaseESP32.h>
 
 //Thay doi wifi
-#define WIFI_SSID "Linh Pru"
-#define WIFI_PASSWORD "Linh1321"
-
+#define WIFI_SSID "KHA"
+#define WIFI_PASSWORD "09082017"
+#define USER  "/users/anhhao/user's gadget" //change username
 #include "addons/TokenHelper.h"
 //Provide the RTDB payload printing info and other helper functions.
 #include "addons/RTDBHelper.h"
@@ -20,7 +20,7 @@
 #define MIN(x) x*60*1000
 
 //number of pin 
-int LED[9]={-1};
+int LED[9]={0};
 enum PIN {D0=16, D1=5, D2=4,D3=0, D4=2, D5=14, D6=13, D7=12, D8=15};
 //Define Firebase Data object
 FirebaseData fbdo;
@@ -31,7 +31,7 @@ FirebaseConfig config;
 bool signupOK = false;
 char path[64];
 char name[64];
-
+bool isTemp = false;
 //Callback firebase thay doi gia tri
 void streamCallback(StreamData data);
 
@@ -41,7 +41,6 @@ unsigned long prevTime1 = millis();
 unsigned long prevTime2 = millis();
 void putTemp();
 void getPin() ;
-int tempPin;
 void setup() {
   randomSeed(42); 
   Serial.begin(115200);
@@ -76,7 +75,7 @@ void setup() {
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
 
-  if (!Firebase.RTDB.beginStream(&stream, "/users/anhhao/user's gadget")) //thay doi user name
+  if (!Firebase.RTDB.beginStream(&stream,USER)); //thay doi user name
     Serial.printf("sream begin error, %s\n\n", stream.errorReason().c_str());
   Firebase.RTDB.setStreamCallback(&stream, streamCallback, streamTimeoutCallback);
 
@@ -111,24 +110,25 @@ void loop() {
 
 //Random Temp Data and send to Firebase
 void putTemp(){
+  if(isTemp){
+    if (Firebase.RTDB.setString(&fbdo, path, String(random(10,30)))){
+      Serial.println("Random TEMP");
+    
+    }
+    else {
+      Serial.println("FAILED  to push Temp");
+    
+    }
+  } 
   
-
-  if (Firebase.RTDB.setString(&fbdo, path, String(random(10,30)))){
-    Serial.println("PASSED");
-    Serial.println("PATH: " + fbdo.dataPath());
-    Serial.println("TYPE: " + fbdo.dataType());
-  }
-  else {
-    Serial.println("FAILED");
-    Serial.println("REASON: " + fbdo.errorReason());
-  }
 }
 
 //Update Pin from Firebase
 void getPin() {
+  isTemp = false;
   for(int i=0;i<=8;i++){
     
-    sprintf(path, "users/anhhao/user's gadget/%d/espPin", i); //thay doi username
+    sprintf(path, "%s/%d/espPin", USER, i); 
     
     if(Firebase.RTDB.getString(&fbdo,path)){
       Serial.println(path);
@@ -136,7 +136,8 @@ void getPin() {
       
       //get Temp pin 
       if(espPin.equals("A0")){
-        tempPin=i;
+        sprintf(path, "%s/%d/btnValue", USER, i);
+        isTemp = true;
       }
       //assigning pin according to ESP32 pinout
       if(espPin.equals("D0")){
@@ -173,7 +174,6 @@ void getPin() {
   for(int i=0;i<=8;i++){
     pinMode(LED[i], OUTPUT);
   }
-  sprintf(path, "users/anhhao/user's gadget/%d/btnValue", tempPin); //thay doi user name
   
   
 }
@@ -182,22 +182,23 @@ void getPin() {
 //
 void streamCallback(StreamData data)
 {
+  /*
   Serial.printf("sream path, %s\nevent path, %s\ndata type, %s\nevent type, %s\n\n",
                 data.streamPath().c_str(),
                 data.dataPath().c_str(),
                 data.dataType().c_str(),
                 data.eventType().c_str());
   printResult(data); //see addons/RTDBHelper.h
-
+*/
   //Kiem tra gia tri pin thay doi hay add/remove button
   
   if(data.dataPath().substring(3).equals("btnValue")){
 
     int PinLed=data.dataPath().substring(1,2).toInt();
     int state=data.stringData().toInt();
+    Serial.printf("Receive value: %d from Pin %d\n", state, PinLed);
     if(state>1){
-      if(LED[PinLed]!=16) //khac D0
-        analogWrite(LED[PinLed], state);  //esp8266
+        
     }else{
       digitalWrite(LED[PinLed],state);
     }
